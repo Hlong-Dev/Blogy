@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Danh Sach Sach";
+}
+<h1>@ViewData["Title"]</h1>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/datatables.min.js"></script>
+<link href="~/css/datatables.datatables.min.css" rel="stylesheet" />
+<table id="tbl1">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+           
+        </tr>
+    </thead>
+</table>
+<script>
+    $(document).ready(function () {
+        var url = "http://localhost:5233/api/Products"; 
+        $.get(url, function (data) {
+            $('#tbl1').DataTable({
+                data: data,
+                columns: [
+                    { data: "id" },
+                    { data: "title" },
+                    { data: "description" },
+                    { data: "price" },
+                    { data: "quantity" }
+                ]
+            });
+        });
+    });
+</script>
+
