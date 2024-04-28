@@ -20,10 +20,14 @@ namespace DoAnCoSo2.Data
 
         public DateTime CreatedAt { get; set; }
 
-        // Khóa ngoại để liên kết với người dùng tạo ra bài đăng
-        [Required]
+        // Thêm khóa ngoại để liên kết với ApplicationUser
         public string UserId { get; set; }
+
+        // Thêm thuộc tính ApplicationUser để tạo mối quan hệ
         [ForeignKey(nameof(UserId))]
         public virtual ApplicationUser User { get; set; }
+        public string? UserName { get; set; }
+        public string? ImageUrl { get; set; }
+
     }
 }

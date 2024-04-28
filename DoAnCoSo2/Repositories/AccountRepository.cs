@@ -27,6 +27,7 @@ namespace DoAnCoSo2.Repositories
 
         public async Task<string> SignInAsync(SignInModel model)
         {
+         
             var user = await userManager.FindByEmailAsync(model.Email);
             var passwordValid = await userManager.CheckPasswordAsync(user, model.Password);
             
@@ -42,7 +43,10 @@ namespace DoAnCoSo2.Repositories
 
             var authClaims = new List<Claim>
             {
+                
                 new Claim(ClaimTypes.Email, model.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
             var userRoles = await userManager.GetRolesAsync(user);
@@ -56,7 +60,7 @@ namespace DoAnCoSo2.Repositories
             var token = new JwtSecurityToken(
                 issuer: configuration["JWT:ValidIssuer"],
                 audience: configuration["JWT:ValidAudience"],
-                expires: DateTime.Now.AddMinutes(20),
+                expires: DateTime.Now.AddMonths(1),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha256Signature)
             );

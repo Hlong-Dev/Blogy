@@ -14,8 +14,12 @@ namespace DoAnCoSo2.Models
 
         public DateTime CreatedAt { get; set; }
 
-        [Required]
-        public string UserId { get; set; } // Sử dụng kiểu string cho UserId
+        
+        public string? UserId { get; set; }
+        public string? UserName { get; set;}
+        public string? ImageUrl { get; set; }
+
+        // Sử dụng kiểu string cho UserId
     }
 
 }
