@@ -8,7 +8,9 @@ namespace DoAnCoSo2.Helpers
     {
         public ApplicationMapper()
         {
-            CreateMap<Blog, BlogModel>().ReverseMap();    
+            CreateMap<Blog, BlogModel>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User.Id));
+            CreateMap<BlogModel, Blog>().ReverseMap();
         }
     }
 }

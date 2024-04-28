@@ -1,4 +1,5 @@
-﻿using DoAnCoSo2.Models;
+﻿using DoAnCoSo2.Data;
+using DoAnCoSo2.Models;
 
 namespace DoAnCoSo2.Repositories
 {
@@ -9,5 +10,7 @@ namespace DoAnCoSo2.Repositories
         public Task<int> AddBlogAsync(BlogModel model);
         public Task UpdateBlogAsync(int id, BlogModel model);
         public Task DeleteBlogAsync(int id);
+        public Task<string> UploadImageAsync(IFormFile file);
+      
     }
 }

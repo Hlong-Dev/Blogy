@@ -143,5 +143,18 @@ namespace DoAnCoSo2.Controllers
             // Trả về thông tin người dùng
             return Ok(userInfo);
         }
+        //[HttpPost("ResetPassword")]
+        //public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPasswordModel)
+        //{
+        //    var result = await accountRepo.ResetPasswordAsync(resetPasswordModel.Email);
+        //    if (result.Succeeded)
+        //    {
+        //        // Gửi mật khẩu mới đến email của người dùng (không được triển khai trong ví dụ này)
+        //        return Ok("Password reset successful");
+        //    }
+
+        //    return StatusCode(500, result.Errors);
+        //}
+
     }
 }

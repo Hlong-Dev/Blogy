@@ -6,5 +6,6 @@ namespace DoAnCoSo2.Data
     {
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
+        public ICollection<Blog> Blogs { get; set; }
     }
 }
