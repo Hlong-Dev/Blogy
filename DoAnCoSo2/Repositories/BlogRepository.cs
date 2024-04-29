@@ -4,6 +4,7 @@ using DoAnCoSo2.Data;
 using DoAnCoSo2.Models;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
+using System.Linq;
 
 namespace DoAnCoSo2.Repositories
 {
@@ -22,13 +23,13 @@ namespace DoAnCoSo2.Repositories
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
         }
 
-        public async Task<int> AddBlogAsync(BlogModel model)
+        public async Task<string> AddBlogAsync(BlogModel model)
         {
             var newBlog = _mapper.Map<Blog>(model);
             _context.Blogs!.Add(newBlog);
             await _context.SaveChangesAsync();
 
-            return newBlog.BlogId;
+            return newBlog.Slug;
         }
 
         public async Task DeleteBlogAsync(int id)
@@ -47,15 +48,16 @@ namespace DoAnCoSo2.Repositories
             return _mapper.Map<List<BlogModel>>(blogs);
         }
 
-        public async Task<BlogModel> GetBlogAsync(int id)
+        public async Task<BlogModel> GetBlogAsync(string slug)
         {
-            var blog = await _context.Blogs!.FindAsync(id);
+            var blog = await _context.Blogs!.FirstOrDefaultAsync(b => b.Slug == slug);
+
             return _mapper.Map<BlogModel>(blog);
         }
 
-        public async Task UpdateBlogAsync(int id, BlogModel model)
+        public async Task UpdateBlogAsync(string slug, BlogModel model)
         {
-            if (id == model.BlogId)
+            if (slug == model.Slug)
             {
                 var updateBlog = _mapper.Map<Blog>(model);
                 _context.Blogs!.Update(updateBlog);

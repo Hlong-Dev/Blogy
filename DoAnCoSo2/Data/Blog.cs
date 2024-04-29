@@ -11,7 +11,7 @@ namespace DoAnCoSo2.Data
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int BlogId { get; set; }
-
+        public string Slug { get; set; }
         [Required]
         public string Title { get; set; }
 
