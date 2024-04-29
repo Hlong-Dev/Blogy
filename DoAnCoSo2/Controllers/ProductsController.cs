@@ -23,7 +23,7 @@ namespace DoAnCoSo2.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+      
         public async Task<IActionResult> GetAllBlogs()
         {
             try
@@ -36,10 +36,10 @@ namespace DoAnCoSo2.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetBlogById(int id)
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> GetBlogById(string slug)
         {
-            var blog = await _blogRepo.GetBlogAsync(id);
+            var blog = await _blogRepo.GetBlogAsync(slug);
             return blog == null ? NotFound() : Ok(blog);
         }
         [HttpPost]
@@ -59,14 +59,15 @@ namespace DoAnCoSo2.Controllers
                     UserId = model.UserId,
                     UserName = model.UserName,
                     CreatedAt = currentDateTime,
-                    ImageUrl = model.ImageUrl // Lưu URL của ảnh vào blog
+                    ImageUrl = model.ImageUrl,
+                    Slug = model.Slug// Lưu URL của ảnh vào blog
                 };
 
                 // Thêm blog mới vào cơ sở dữ liệu
-                var newBlogId = await _blogRepo.AddBlogAsync(model);
+                var newSlug = await _blogRepo.AddBlogAsync(model);
 
                 // Lấy blog mới đã được thêm vào
-                var blog = await _blogRepo.GetBlogAsync(newBlogId);
+                var blog = await _blogRepo.GetBlogAsync(newSlug);
 
                 return blog == null ? NotFound() : Ok(blog);
             }
@@ -103,14 +104,14 @@ namespace DoAnCoSo2.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBlog(int id, [FromBody] BlogModel model)
+        [HttpPut("{slug}")]
+        public async Task<IActionResult> UpdateBlog(string slug, [FromBody] BlogModel model)
         {
-            if (id != model.BlogId)
+            if (slug != model.Slug)
             {
                 return NotFound();
             }
-            await _blogRepo.UpdateBlogAsync(id, model);
+            await _blogRepo.UpdateBlogAsync(slug, model);
             return Ok();
         }
 
