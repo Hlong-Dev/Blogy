@@ -47,7 +47,10 @@ namespace DoAnCoSo2.Repositories
                 new Claim(ClaimTypes.Email, model.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("AvatarUrl", user.AvatarUrl)
+               
             };
             var userRoles = await userManager.GetRolesAsync(user);
             foreach(var role in userRoles)

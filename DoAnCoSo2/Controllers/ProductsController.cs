@@ -35,7 +35,18 @@ namespace DoAnCoSo2.Controllers
                 return BadRequest();
             }
         }
-
+        [HttpGet("private/{userId}")]
+        public async Task<IActionResult> GetPrivateBlogs(string userId)
+        {
+            try
+            {
+                return Ok(await _blogRepo.GetAllPrivateBlogsByUserAsync(userId));
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
         [HttpGet("{slug}")]
         public async Task<IActionResult> GetBlogById(string slug)
         {
@@ -47,9 +58,16 @@ namespace DoAnCoSo2.Controllers
         {
             try
             {
-
                 var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
                 var currentDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+
+                // Kiểm tra xem slug đã tồn tại trong cơ sở dữ liệu hay chưa
+                var slugExists = await _blogRepo.IsSlugExists(model.Slug);
+                if (slugExists)
+                {
+                    // Nếu slug đã tồn tại, thực hiện một biện pháp để tạo ra một slug mới
+                    model.Slug = GenerateUniqueSlug(model.Slug);
+                }
 
                 // Tạo một đối tượng Blog mới
                 var newBlog = new Blog
@@ -60,7 +78,10 @@ namespace DoAnCoSo2.Controllers
                     UserName = model.UserName,
                     CreatedAt = currentDateTime,
                     ImageUrl = model.ImageUrl,
-                    Slug = model.Slug// Lưu URL của ảnh vào blog
+                    Slug = model.Slug,// Lưu URL của ảnh vào blog
+                    Description = model.Description,
+                    AvatarUrl = model.AvatarUrl,
+                    FirstName = model.FirstName
                 };
 
                 // Thêm blog mới vào cơ sở dữ liệu
@@ -76,6 +97,15 @@ namespace DoAnCoSo2.Controllers
                 return BadRequest();
             }
         }
+
+        private string GenerateUniqueSlug(string slug)
+        {
+            // Tạo một slug mới không trùng lặp, ví dụ: thêm số vào cuối slug
+            var uniqueSlug = $"{slug}-{DateTime.Now.Ticks}";
+
+            return uniqueSlug;
+        }
+
 
         [HttpPost("upload")]
         public async Task<IActionResult> UploadImage(IFormFile file)
