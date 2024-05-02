@@ -27,7 +27,10 @@ namespace DoAnCoSo2.Data
         [ForeignKey(nameof(UserId))]
         public virtual ApplicationUser User { get; set; }
         public string? UserName { get; set; }
+        public string? FirstName { get; set; }
+        public string? AvatarUrl { get; set; }
         public string? ImageUrl { get; set; }
-
+        public bool IsPublic { get; set; }
+        public string Description { get; set; }
     }
 }

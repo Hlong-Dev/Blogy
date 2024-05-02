@@ -11,6 +11,7 @@ namespace DoAnCoSo2.Repositories
         public Task UpdateBlogAsync(string slug, BlogModel model);
         public Task DeleteBlogAsync(int id);
         public Task<string> UploadImageAsync(IFormFile file);
-      
+        public Task<List<BlogModel>> GetAllPrivateBlogsByUserAsync(string userId);
+        public Task<bool> IsSlugExists(string slug);
     }
 }

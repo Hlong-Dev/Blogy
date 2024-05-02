@@ -26,12 +26,17 @@ namespace DoAnCoSo2.Repositories
         public async Task<string> AddBlogAsync(BlogModel model)
         {
             var newBlog = _mapper.Map<Blog>(model);
+            newBlog.IsPublic = model.IsPublic;
             _context.Blogs!.Add(newBlog);
             await _context.SaveChangesAsync();
 
             return newBlog.Slug;
         }
-
+        public async Task<bool> IsSlugExists(string slug)
+        {
+            // Kiểm tra xem có blog nào có slug giống với slug đã cho không
+            return await _context.Blogs.AnyAsync(b => b.Slug == slug);
+        }
         public async Task DeleteBlogAsync(int id)
         {
             var deleteBlog = _context.Blogs!.SingleOrDefault(b => b.BlogId == id);
@@ -44,7 +49,8 @@ namespace DoAnCoSo2.Repositories
 
         public async Task<List<BlogModel>> GetAllBlogsAsync()
         {
-            var blogs = await _context.Blogs!.ToListAsync();
+            var blogs = await _context.Blogs!.Where(b => b.IsPublic)
+           .ToListAsync();
             return _mapper.Map<List<BlogModel>>(blogs);
         }
 
@@ -96,6 +102,12 @@ namespace DoAnCoSo2.Repositories
                 return null;
             }
         }
-
+        public async Task<List<BlogModel>> GetAllPrivateBlogsByUserAsync(string userId)
+        {
+            var blogs = await _context.Blogs!
+                .Where(b => !b.IsPublic && b.UserId == userId)
+                .ToListAsync();
+            return _mapper.Map<List<BlogModel>>(blogs);
+        }
     }
 }

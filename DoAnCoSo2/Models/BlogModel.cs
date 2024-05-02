@@ -18,7 +18,10 @@ namespace DoAnCoSo2.Models
         public string? UserId { get; set; }
         public string? UserName { get; set;}
         public string? ImageUrl { get; set; }
-
+        public bool IsPublic { get; set; }
+        public string Description { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? FirstName { get; set; }
         // Sử dụng kiểu string cho UserId
     }
 
