@@ -132,17 +132,23 @@ namespace DoAnCoSo2.Controllers
             // Lấy thông tin người dùng từ JWT token
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
             var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+            var userAvatarUrl = User.FindFirstValue("avatarUrl"); // Lấy thông tin avatarUrl từ claim
+            var userGivenName = User.FindFirstValue(ClaimTypes.GivenName); // Lấy thông tin givenname từ claim
+            
 
             // Tạo đối tượng chứa thông tin người dùng
             var userInfo = new
             {
                 Email = userEmail,
-                Roles = userRoles
+                Roles = userRoles,
+                AvatarUrl = userAvatarUrl,
+                GivenName = userGivenName
             };
 
             // Trả về thông tin người dùng
             return Ok(userInfo);
         }
+
         //[HttpPost("ResetPassword")]
         //public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPasswordModel)
         //{
