@@ -31,7 +31,7 @@ namespace DoAnCoSo2.Repositories
             await _context.SaveChangesAsync();
 
             return newBlog.Slug;
-        }
+        } 
         public async Task<bool> IsSlugExists(string slug)
         {
             // Kiểm tra xem có blog nào có slug giống với slug đã cho không
