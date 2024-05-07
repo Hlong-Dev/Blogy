@@ -12,6 +12,7 @@ namespace DoAnCoSo2.Data
 
         #region DbSet
         public DbSet<Blog>? Blogs { get; set; }
+        public DbSet<Category>? Categories { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -62,6 +62,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ImgurUploader>(); // Assuming ImageUploader is the correct class name
 
 builder.Services.AddAuthentication(options => {

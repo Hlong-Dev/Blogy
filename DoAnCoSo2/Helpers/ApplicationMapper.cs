@@ -11,6 +11,7 @@ namespace DoAnCoSo2.Helpers
             CreateMap<Blog, BlogModel>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User.Id));
             CreateMap<BlogModel, Blog>().ReverseMap();
+            CreateMap<CategoryModel, Category>().ReverseMap();
         }
     }
 }

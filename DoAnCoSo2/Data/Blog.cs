@@ -19,6 +19,10 @@ namespace DoAnCoSo2.Data
         public string Content { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public int CategoryId { get; set; }
+
+
+        public Category Category { get; set; }
 
         // Thêm khóa ngoại để liên kết với ApplicationUser
         public string UserId { get; set; }
@@ -32,5 +36,6 @@ namespace DoAnCoSo2.Data
         public string? ImageUrl { get; set; }
         public bool IsPublic { get; set; }
         public string Description { get; set; }
+       
     }
 }

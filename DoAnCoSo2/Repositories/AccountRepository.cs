@@ -78,7 +78,8 @@ namespace DoAnCoSo2.Repositories
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 Email = model.Email,
-                UserName = model.Email
+                UserName = model.Email,
+                AvatarUrl = "https://i.imgur.com/BvIv2iv.png"
             };
 
             var resuls= await userManager.CreateAsync(user, model.Password);
