@@ -65,5 +65,18 @@ namespace DoAnCoSo2.Controllers
             var blog = await _categoryRepo.GetCategoryAsync(slug);
             return blog == null ? NotFound() : Ok(blog);
         }
+        [HttpGet]
+
+        public async Task<IActionResult> GetAllCategories()
+        {
+            try
+            {
+                return Ok(await _categoryRepo.GetAllCategoriesAsync());
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
     }
 }

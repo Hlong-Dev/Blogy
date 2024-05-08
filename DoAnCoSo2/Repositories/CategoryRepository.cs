@@ -34,9 +34,11 @@ namespace DoAnCoSo2.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<List<CategoryModel>> GetAllCategoriesAsync()
+        public async Task<List<CategoryModel>> GetAllCategoriesAsync()
         {
-            throw new NotImplementedException();
+            var blogs = await _context.Categories!
+           .ToListAsync();
+            return _mapper.Map<List<CategoryModel>>(blogs);
         }
 
         public async Task<CategoryModel> GetCategoryAsync(string slug)
