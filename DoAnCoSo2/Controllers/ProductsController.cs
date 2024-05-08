@@ -81,7 +81,8 @@ namespace DoAnCoSo2.Controllers
                     Slug = model.Slug,// Lưu URL của ảnh vào blog
                     Description = model.Description,
                     AvatarUrl = model.AvatarUrl,
-                    FirstName = model.FirstName
+                    FirstName = model.FirstName,
+                    CategoryId = model.CategoryId
                 };
 
                 // Thêm blog mới vào cơ sở dữ liệu

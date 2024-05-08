@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DoAnCoSo2.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace DoAnCoSo2.Models
 {
@@ -22,6 +23,10 @@ namespace DoAnCoSo2.Models
         public string Description { get; set; }
         public string? AvatarUrl { get; set; }
         public string? FirstName { get; set; }
+        public int CategoryId { get; set; }
+
+
+       
         // Sử dụng kiểu string cho UserId
     }
 
