@@ -13,6 +13,7 @@ namespace DoAnCoSo2.Data
         #region DbSet
         public DbSet<Blog>? Blogs { get; set; }
         public DbSet<Category>? Categories { get; set; }
+        public DbSet<UserSavedBlog> UserSavedBlogs { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -23,6 +24,8 @@ namespace DoAnCoSo2.Data
                 .HasOne(b => b.User)
                 .WithMany(u => u.Blogs)
                 .HasForeignKey(b => b.UserId);
+            modelBuilder.Entity<UserSavedBlog>()
+            .HasKey(us => us.Id);
         }
     }
 }

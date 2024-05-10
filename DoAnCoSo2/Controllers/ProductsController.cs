@@ -6,6 +6,7 @@ using DoAnCoSo2.Repositories;
 using DoAnCoSo2.Helpers;
 using DoAnCoSo2.Data;
 using System;
+using System.Security.Claims;
 
 namespace DoAnCoSo2.Controllers
 {
@@ -15,6 +16,14 @@ namespace DoAnCoSo2.Controllers
     {
         private readonly IBlogRepository _blogRepo;
 
+        public class SaveBlogRequest
+        {
+            public int BlogId { get; set; }
+        }
+        public class UnsaveBlogRequest
+        {
+            public int BlogId { get; set; }
+        }
 
         public ProductsController(IBlogRepository repo)
         {
@@ -153,5 +162,26 @@ namespace DoAnCoSo2.Controllers
             await _blogRepo.DeleteBlogAsync(id);
             return Ok();
         }
+        [HttpPost("saved")]
+        public async Task<IActionResult> SaveOrUnsaveBlog([FromBody] SaveBlogRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isBlogSaved = await _blogRepo.IsBlogSavedAsync(userId, request.BlogId);
+
+            if (isBlogSaved)
+            {
+                // Nếu bài viết đã được lưu, thực hiện hành động bỏ lưu
+                await _blogRepo.UnsaveBlogAsync(userId, request.BlogId);
+                return Ok("Blog unsaved successfully!");
+            }
+            else
+            {
+                // Nếu bài viết chưa được lưu, thực hiện hành động lưu
+                await _blogRepo.SaveBlogAsync(userId, request.BlogId);
+                return Ok("Blog saved successfully!");
+            }
+        }
+
+
     }
 }
