@@ -109,5 +109,46 @@ namespace DoAnCoSo2.Repositories
                 .ToListAsync();
             return _mapper.Map<List<BlogModel>>(blogs);
         }
+        public async Task SaveBlogAsync(string userId, int blogId)
+        {
+            // Kiểm tra xem bài viết đã được lưu bởi người dùng hay chưa
+            if (!await IsBlogSavedAsync(userId, blogId))
+            {
+                // Nếu bài viết chưa được lưu, thêm một bản ghi mới vào cơ sở dữ liệu
+                var userSavedBlog = new UserSavedBlog { UserId = userId, BlogId = blogId };
+                _context.UserSavedBlogs.Add(userSavedBlog);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UnsaveBlogAsync(string userId, int blogId)
+        {
+            // Tìm và xóa bản ghi lưu bài viết khỏi cơ sở dữ liệu
+            var savedBlog = await _context.UserSavedBlogs.FirstOrDefaultAsync(us => us.UserId == userId && us.BlogId == blogId);
+            if (savedBlog != null)
+            {
+                _context.UserSavedBlogs.Remove(savedBlog);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<BlogModel>> GetSavedBlogsAsync(string userId)
+        {
+            var savedBlogIds = await _context.UserSavedBlogs
+                .Where(us => us.UserId == userId)
+                .Select(us => us.BlogId)
+                .ToListAsync();
+
+            var savedBlogs = await _context.Blogs
+                .Where(b => savedBlogIds.Contains(b.BlogId))
+                .ToListAsync();
+
+            return _mapper.Map<List<BlogModel>>(savedBlogs);
+        }
+        public async Task<bool> IsBlogSavedAsync(string userId, int blogId)
+        {
+            // Kiểm tra xem bài viết đã được lưu bởi người dùng hay chưa
+            return await _context.UserSavedBlogs.AnyAsync(us => us.UserId == userId && us.BlogId == blogId);
+        }
     }
 }
