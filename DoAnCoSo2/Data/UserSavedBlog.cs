@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DoAnCoSo2.Data
 {
@@ -12,5 +13,7 @@ namespace DoAnCoSo2.Data
 
         [Required]
         public int BlogId { get; set; }
+        [ForeignKey(nameof(BlogId))]
+        public Blog Blog { get; set; }
     }
 }

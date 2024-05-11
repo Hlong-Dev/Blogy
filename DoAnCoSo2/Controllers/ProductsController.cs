@@ -7,6 +7,7 @@ using DoAnCoSo2.Helpers;
 using DoAnCoSo2.Data;
 using System;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace DoAnCoSo2.Controllers
 {
@@ -15,7 +16,7 @@ namespace DoAnCoSo2.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IBlogRepository _blogRepo;
-
+        private readonly BookStoreContext _context;
         public class SaveBlogRequest
         {
             public int BlogId { get; set; }
@@ -25,10 +26,10 @@ namespace DoAnCoSo2.Controllers
             public int BlogId { get; set; }
         }
 
-        public ProductsController(IBlogRepository repo)
+        public ProductsController(IBlogRepository repo, BookStoreContext context)
         {
             _blogRepo = repo;
-
+            _context = context;
         }
 
         [HttpGet]
@@ -179,6 +180,24 @@ namespace DoAnCoSo2.Controllers
                 // Nếu bài viết chưa được lưu, thực hiện hành động lưu
                 await _blogRepo.SaveBlogAsync(userId, request.BlogId);
                 return Ok("Blog saved successfully!");
+            }
+        }
+        [HttpGet("saved")]
+        [Authorize] // Chỉ người dùng đã đăng nhập mới có thể xem lại các bài viết đã lưu
+        public async Task<IActionResult> GetSavedBlogs()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                // Gọi phương thức từ repo để lấy danh sách các bài viết đã lưu
+                var savedBlogs = await _blogRepo.GetSavedBlogsAsync(userId);
+
+                return Ok(savedBlogs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 

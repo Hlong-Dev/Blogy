@@ -36,6 +36,6 @@ namespace DoAnCoSo2.Data
         public string? ImageUrl { get; set; }
         public bool IsPublic { get; set; }
         public string Description { get; set; }
-       
+      
     }
 }
