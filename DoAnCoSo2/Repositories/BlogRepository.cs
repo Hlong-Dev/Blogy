@@ -139,12 +139,20 @@ namespace DoAnCoSo2.Repositories
                 .Select(us => us.BlogId)
                 .ToListAsync();
 
-            var savedBlogs = await _context.Blogs
-                .Where(b => savedBlogIds.Contains(b.BlogId))
-                .ToListAsync();
+            if (savedBlogIds.Any()) // Kiểm tra nếu có bài viết đã lưu
+            {
+                var savedBlogs = await _context.Blogs
+                    .Where(b => savedBlogIds.Contains(b.BlogId))
+                    .ToListAsync();
 
-            return _mapper.Map<List<BlogModel>>(savedBlogs);
+                return _mapper.Map<List<BlogModel>>(savedBlogs);
+            }
+            else // Trả về mảng rỗng nếu không có bài viết nào đã lưu
+            {
+                return new List<BlogModel>();
+            }
         }
+
         public async Task<bool> IsBlogSavedAsync(string userId, int blogId)
         {
             // Kiểm tra xem bài viết đã được lưu bởi người dùng hay chưa

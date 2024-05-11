@@ -24,8 +24,12 @@ namespace DoAnCoSo2.Data
                 .HasOne(b => b.User)
                 .WithMany(u => u.Blogs)
                 .HasForeignKey(b => b.UserId);
+
             modelBuilder.Entity<UserSavedBlog>()
-            .HasKey(us => us.Id);
+                .HasKey(us => us.Id);
+
+           
         }
+
     }
 }

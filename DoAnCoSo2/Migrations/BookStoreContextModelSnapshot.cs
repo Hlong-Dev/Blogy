@@ -154,7 +154,7 @@ namespace DoAnCoSo2.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Blog");
+                    b.ToTable("Blog", (string)null);
                 });
 
             modelBuilder.Entity("DoAnCoSo2.Data.Category", b =>
@@ -175,7 +175,7 @@ namespace DoAnCoSo2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Category");
+                    b.ToTable("Category", (string)null);
                 });
 
             modelBuilder.Entity("DoAnCoSo2.Data.UserSavedBlog", b =>
@@ -195,7 +195,7 @@ namespace DoAnCoSo2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserSavedBlogs");
+                    b.ToTable("UserSavedBlogs", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
