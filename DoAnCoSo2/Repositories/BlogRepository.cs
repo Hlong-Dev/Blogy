@@ -5,6 +5,8 @@ using DoAnCoSo2.Models;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DoAnCoSo2.Repositories
 {
@@ -27,37 +29,36 @@ namespace DoAnCoSo2.Repositories
         {
             var newBlog = _mapper.Map<Blog>(model);
             newBlog.IsPublic = model.IsPublic;
-            _context.Blogs!.Add(newBlog);
+            _context.Blogs.Add(newBlog);
             await _context.SaveChangesAsync();
 
             return newBlog.Slug;
-        } 
+        }
+
         public async Task<bool> IsSlugExists(string slug)
         {
-            // Kiểm tra xem có blog nào có slug giống với slug đã cho không
             return await _context.Blogs.AnyAsync(b => b.Slug == slug);
         }
+
         public async Task DeleteBlogAsync(int id)
         {
-            var deleteBlog = _context.Blogs!.SingleOrDefault(b => b.BlogId == id);
+            var deleteBlog = _context.Blogs.SingleOrDefault(b => b.BlogId == id);
             if (deleteBlog != null)
             {
-                _context.Blogs!.Remove(deleteBlog);
+                _context.Blogs.Remove(deleteBlog);
                 await _context.SaveChangesAsync();
             }
         }
 
         public async Task<List<BlogModel>> GetAllBlogsAsync()
         {
-            var blogs = await _context.Blogs!.Where(b => b.IsPublic)
-           .ToListAsync();
+            var blogs = await _context.Blogs.Where(b => b.IsPublic).ToListAsync();
             return _mapper.Map<List<BlogModel>>(blogs);
         }
 
         public async Task<BlogModel> GetBlogAsync(string slug)
         {
-            var blog = await _context.Blogs!.FirstOrDefaultAsync(b => b.Slug == slug);
-
+            var blog = await _context.Blogs.FirstOrDefaultAsync(b => b.Slug == slug);
             return _mapper.Map<BlogModel>(blog);
         }
 
@@ -66,10 +67,11 @@ namespace DoAnCoSo2.Repositories
             if (slug == model.Slug)
             {
                 var updateBlog = _mapper.Map<Blog>(model);
-                _context.Blogs!.Update(updateBlog);
+                _context.Blogs.Update(updateBlog);
                 await _context.SaveChangesAsync();
             }
         }
+
         public async Task<string> UploadImageAsync(IFormFile file)
         {
             try
@@ -83,9 +85,9 @@ namespace DoAnCoSo2.Repositories
                     var imageData = memoryStream.ToArray();
 
                     var content = new MultipartFormDataContent
-            {
-                { new ByteArrayContent(imageData), "image", file.FileName }
-            };
+                    {
+                        { new ByteArrayContent(imageData), "image", file.FileName }
+                    };
 
                     var response = await _client.PostAsync("https://api.imgur.com/3/upload", content);
                     response.EnsureSuccessStatusCode();
@@ -102,19 +104,17 @@ namespace DoAnCoSo2.Repositories
                 return null;
             }
         }
+
         public async Task<List<BlogModel>> GetAllPrivateBlogsByUserAsync(string userId)
         {
-            var blogs = await _context.Blogs!
-                .Where(b => !b.IsPublic && b.UserId == userId)
-                .ToListAsync();
+            var blogs = await _context.Blogs.Where(b => !b.IsPublic && b.UserId == userId).ToListAsync();
             return _mapper.Map<List<BlogModel>>(blogs);
         }
+
         public async Task SaveBlogAsync(string userId, int blogId)
         {
-            // Kiểm tra xem bài viết đã được lưu bởi người dùng hay chưa
             if (!await IsBlogSavedAsync(userId, blogId))
             {
-                // Nếu bài viết chưa được lưu, thêm một bản ghi mới vào cơ sở dữ liệu
                 var userSavedBlog = new UserSavedBlog { UserId = userId, BlogId = blogId };
                 _context.UserSavedBlogs.Add(userSavedBlog);
                 await _context.SaveChangesAsync();
@@ -123,7 +123,6 @@ namespace DoAnCoSo2.Repositories
 
         public async Task UnsaveBlogAsync(string userId, int blogId)
         {
-            // Tìm và xóa bản ghi lưu bài viết khỏi cơ sở dữ liệu
             var savedBlog = await _context.UserSavedBlogs.FirstOrDefaultAsync(us => us.UserId == userId && us.BlogId == blogId);
             if (savedBlog != null)
             {
@@ -134,20 +133,13 @@ namespace DoAnCoSo2.Repositories
 
         public async Task<List<BlogModel>> GetSavedBlogsAsync(string userId)
         {
-            var savedBlogIds = await _context.UserSavedBlogs
-                .Where(us => us.UserId == userId)
-                .Select(us => us.BlogId)
-                .ToListAsync();
-
-            if (savedBlogIds.Any()) // Kiểm tra nếu có bài viết đã lưu
+            var savedBlogIds = await _context.UserSavedBlogs.Where(us => us.UserId == userId).Select(us => us.BlogId).ToListAsync();
+            if (savedBlogIds.Any())
             {
-                var savedBlogs = await _context.Blogs
-                    .Where(b => savedBlogIds.Contains(b.BlogId))
-                    .ToListAsync();
-
+                var savedBlogs = await _context.Blogs.Where(b => savedBlogIds.Contains(b.BlogId)).ToListAsync();
                 return _mapper.Map<List<BlogModel>>(savedBlogs);
             }
-            else // Trả về mảng rỗng nếu không có bài viết nào đã lưu
+            else
             {
                 return new List<BlogModel>();
             }
@@ -155,8 +147,28 @@ namespace DoAnCoSo2.Repositories
 
         public async Task<bool> IsBlogSavedAsync(string userId, int blogId)
         {
-            // Kiểm tra xem bài viết đã được lưu bởi người dùng hay chưa
             return await _context.UserSavedBlogs.AnyAsync(us => us.UserId == userId && us.BlogId == blogId);
+        }
+
+        public async Task<IEnumerable<Comment>> GetCommentsForBlogAsync(int blogId)
+        {
+            return await _context.Comments.Where(c => c.BlogId == blogId).ToListAsync();
+        }
+
+        public async Task AddCommentAsync(Comment comment)
+        {
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteCommentAsync(int commentId)
+        {
+            var comment = await _context.Comments.FindAsync(commentId);
+            if (comment != null)
+            {
+                _context.Comments.Remove(comment);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

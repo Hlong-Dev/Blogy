@@ -200,7 +200,72 @@ namespace DoAnCoSo2.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpPost("{slug}/comments")]
+        public async Task<IActionResult> AddComment(string slug, [FromBody] CommentModel model)
+        {
+            try
+            {
+                var blog = await _blogRepo.GetBlogAsync(slug);
+                if (blog == null)
+                {
+                    return NotFound("Blog not found");
+                }
+
+                var newComment = new Comment
+                {
+                    BlogId = blog.BlogId,
+                    UserId = model.UserId,
+                    UserName = model.UserName,
+                    Content = model.Content,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _blogRepo.AddCommentAsync(newComment);
+
+                return Ok("Comment added successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [HttpGet("{blogId}/comments")]
+        public async Task<IActionResult> GetComments(int blogId)
+        {
+            try
+            {
+                // Retrieve all comments for the specified blog
+                var comments = await _blogRepo.GetCommentsForBlogAsync(blogId);
+
+                return Ok(comments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
 
+
+        [HttpDelete("{slug}/comments/{commentId}")]
+        public async Task<IActionResult> DeleteComment(string slug, int commentId)
+        {
+            try
+            {
+                var blog = await _blogRepo.GetBlogAsync(slug);
+                if (blog == null)
+                {
+                    return NotFound("Blog not found");
+                }
+
+                await _blogRepo.DeleteCommentAsync(commentId);
+
+                return Ok("Comment deleted successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
