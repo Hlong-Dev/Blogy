@@ -17,5 +17,9 @@ namespace DoAnCoSo2.Repositories
         public Task SaveBlogAsync(string? userId, int blogId);
         public Task<List<BlogModel>> GetSavedBlogsAsync(string userId);
         public Task<bool> IsBlogSavedAsync(string userId, int blogId);
+
+        Task<IEnumerable<Comment>> GetCommentsForBlogAsync(int blogId);
+        public Task AddCommentAsync(Comment comment);
+        public Task DeleteCommentAsync(int commentId);
     }
 }
