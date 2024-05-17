@@ -39,10 +39,10 @@ namespace DoAnCoSo2.Controllers
                 };
 
                 // Thêm category mới vào cơ sở dữ liệu
-                var newSlug = await _categoryRepo.AddCategoryAsync(model);
+                var id = await _categoryRepo.AddCategoryAsync(model);
 
                 // Lấy category mới đã được thêm vào
-                var category = await _categoryRepo.GetCategoryAsync(newSlug);
+                var category = await _categoryRepo.GetCategoryAsync(id);
 
                 return category == null ? NotFound() : Ok(category);
             }
@@ -59,10 +59,10 @@ namespace DoAnCoSo2.Controllers
 
             return uniqueSlug;
         }
-        [HttpGet("{slug}")]
-        public async Task<IActionResult> GetBlogById(string slug)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBlogById(int id)
         {
-            var blog = await _categoryRepo.GetCategoryAsync(slug);
+            var blog = await _categoryRepo.GetCategoryAsync(id);
             return blog == null ? NotFound() : Ok(blog);
         }
         [HttpGet]

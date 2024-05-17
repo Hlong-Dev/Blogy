@@ -215,7 +215,8 @@ namespace DoAnCoSo2.Controllers
                 {
                     BlogId = blog.BlogId,
                     UserId = model.UserId,
-                    UserName = model.UserName,
+                    FirstName = model.FirstName,
+                    AvatarUrl = model.AvatarUrl,
                     Content = model.Content,
                     CreatedAt = DateTime.UtcNow
                 };

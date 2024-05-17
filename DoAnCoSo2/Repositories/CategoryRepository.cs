@@ -15,14 +15,14 @@ namespace DoAnCoSo2.Repositories
             _context = context;
             _mapper = mapper;
         }
-        public async Task<string> AddCategoryAsync(CategoryModel model)
+        public async Task<int> AddCategoryAsync(CategoryModel model)
         {
             var newCategory = _mapper.Map<Category>(model);
           
             _context.Categories!.Add(newCategory);
             await _context.SaveChangesAsync();
 
-            return newCategory.Slug;
+            return newCategory.Id;
         }
         public async Task<bool> IsSlugExists(string slug)
         {
@@ -41,12 +41,22 @@ namespace DoAnCoSo2.Repositories
             return _mapper.Map<List<CategoryModel>>(blogs);
         }
 
-        public async Task<CategoryModel> GetCategoryAsync(string slug)
+        public async Task<CategoryModel> GetCategoryAsync(int id)
         {
-            var blog = await _context.Categories!.FirstOrDefaultAsync(b => b.Slug == slug);
+            // Tìm kiếm category trong cơ sở dữ liệu dựa trên id
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
 
-            return _mapper.Map<CategoryModel>(blog);
+            // Kiểm tra xem category có tồn tại không
+            if (category == null)
+            {
+                // Nếu không tìm thấy, trả về null hoặc xử lý theo nhu cầu của bạn
+                return null;
+            }
+
+            // Ánh xạ category thành một CategoryModel và trả về
+            return _mapper.Map<CategoryModel>(category);
         }
+
 
         public Task UpdateCategoryAsync(string slug, CategoryModel model)
         {
