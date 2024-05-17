@@ -4,6 +4,7 @@ using DoAnCoSo2.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DoAnCoSo2.Migrations
 {
     [DbContext(typeof(BookStoreContext))]
-    partial class BookStoreContextModelSnapshot : ModelSnapshot
+    [Migration("20240515191010_cmt")]
+    partial class cmt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -202,10 +204,6 @@ namespace DoAnCoSo2.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentId")
-                        .IsRequired()
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -213,8 +211,6 @@ namespace DoAnCoSo2.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BlogId");
-
-                    b.HasIndex("ParentId");
 
                     b.ToTable("Comments");
                 });
@@ -401,15 +397,7 @@ namespace DoAnCoSo2.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DoAnCoSo2.Data.Comment", "ParentComment")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Blog");
-
-                    b.Navigation("ParentComment");
                 });
 
             modelBuilder.Entity("DoAnCoSo2.Data.UserSavedBlog", b =>
@@ -482,11 +470,6 @@ namespace DoAnCoSo2.Migrations
             modelBuilder.Entity("DoAnCoSo2.Data.Blog", b =>
                 {
                     b.Navigation("Comments");
-                });
-
-            modelBuilder.Entity("DoAnCoSo2.Data.Comment", b =>
-                {
-                    b.Navigation("Replies");
                 });
 #pragma warning restore 612, 618
         }
