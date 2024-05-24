@@ -37,5 +37,7 @@ namespace DoAnCoSo2.Data
         public bool IsPublic { get; set; }
         public string Description { get; set; }
         public ICollection<Comment> Comments { get; set; }
+        public int ViewCount { get; set; }
+
     }
 }

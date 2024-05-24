@@ -61,8 +61,17 @@ namespace DoAnCoSo2.Controllers
         public async Task<IActionResult> GetBlogById(string slug)
         {
             var blog = await _blogRepo.GetBlogAsync(slug);
-            return blog == null ? NotFound() : Ok(blog);
+            if (blog == null)
+            {
+                return NotFound();
+            }
+
+            // Gọi phương thức từ repo để cập nhật số lượt xem của bài viết
+            await _blogRepo.UpdateViewCountAsync(blog.BlogId);
+
+            return Ok(blog);
         }
+
         [HttpPost]
         public async Task<IActionResult> AddNewBlog(BlogModel model)
         {
@@ -266,6 +275,19 @@ namespace DoAnCoSo2.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [HttpGet("popular")]
+        public async Task<IActionResult> GetPopularBlogs(int count = 5)
+        {
+            try
+            {
+                var popularBlogs = await _blogRepo.GetPopularBlogsAsync(count);
+                return Ok(popularBlogs);
+            }
+            catch
+            {
+                return BadRequest();
             }
         }
     }

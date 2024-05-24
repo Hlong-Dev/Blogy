@@ -19,6 +19,7 @@ namespace DoAnCoSo2.Controllers
 
         }
         [HttpPost]
+
         public async Task<IActionResult> AddNewCategory(CategoryModel model)
         {
             try

@@ -21,5 +21,8 @@ namespace DoAnCoSo2.Repositories
         Task<IEnumerable<Comment>> GetCommentsForBlogAsync(int blogId);
         public Task AddCommentAsync(Comment comment);
         public Task DeleteCommentAsync(int commentId);
+        Task<IEnumerable<Blog>> GetPopularBlogsAsync(int count);
+        Task UpdateViewCountAsync(int blogId);
+
     }
 }

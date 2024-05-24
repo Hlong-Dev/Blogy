@@ -15,5 +15,11 @@ namespace DoAnCoSo2.Repositories
         public Task<IdentityResult> UnlockUserAsync(string userId);
         public Task<IEnumerable<string>> GetRolesAsync();
         public Task<IdentityResult> UpdateUserAndRoleAsync(string userId, ApplicationUser model, string newRole);
+        Task<bool> FollowUserAsync(string followerId, string followeeId);
+        Task<List<ApplicationUser>> GetFollowingAsync(string userId);
+        Task<List<ApplicationUser>> GetFollowersAsync(string userId);
+        Task<UserProfileModel> GetUserProfileAsync(string userId);
+        Task<bool> UnfollowUserAsync(string followerId, string followeeId);
+        Task<bool> IsFollowingAsync(string followerId, string followeeId);
     }
 }
