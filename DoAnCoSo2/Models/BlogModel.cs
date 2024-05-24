@@ -25,8 +25,8 @@ namespace DoAnCoSo2.Models
         public string? FirstName { get; set; }
         public int CategoryId { get; set; }
 
+        public int ViewCount { get; set; }
 
-       
         // Sử dụng kiểu string cho UserId
     }
 

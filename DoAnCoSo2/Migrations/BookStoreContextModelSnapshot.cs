@@ -148,6 +148,9 @@ namespace DoAnCoSo2.Migrations
                     b.Property<string>("UserName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
+
                     b.HasKey("BlogId");
 
                     b.HasIndex("CategoryId");
@@ -202,10 +205,6 @@ namespace DoAnCoSo2.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentId")
-                        .IsRequired()
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -214,9 +213,22 @@ namespace DoAnCoSo2.Migrations
 
                     b.HasIndex("BlogId");
 
-                    b.HasIndex("ParentId");
-
                     b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("DoAnCoSo2.Data.UserRelationship", b =>
+                {
+                    b.Property<string>("FollowerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FolloweeId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("FollowerId", "FolloweeId");
+
+                    b.HasIndex("FolloweeId");
+
+                    b.ToTable("UserRelationships");
                 });
 
             modelBuilder.Entity("DoAnCoSo2.Data.UserSavedBlog", b =>
@@ -401,15 +413,26 @@ namespace DoAnCoSo2.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DoAnCoSo2.Data.Comment", "ParentComment")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentId")
+                    b.Navigation("Blog");
+                });
+
+            modelBuilder.Entity("DoAnCoSo2.Data.UserRelationship", b =>
+                {
+                    b.HasOne("DoAnCoSo2.Data.ApplicationUser", "Followee")
+                        .WithMany("Followers")
+                        .HasForeignKey("FolloweeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Blog");
+                    b.HasOne("DoAnCoSo2.Data.ApplicationUser", "Follower")
+                        .WithMany("Following")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("ParentComment");
+                    b.Navigation("Followee");
+
+                    b.Navigation("Follower");
                 });
 
             modelBuilder.Entity("DoAnCoSo2.Data.UserSavedBlog", b =>
@@ -477,16 +500,15 @@ namespace DoAnCoSo2.Migrations
             modelBuilder.Entity("DoAnCoSo2.Data.ApplicationUser", b =>
                 {
                     b.Navigation("Blogs");
+
+                    b.Navigation("Followers");
+
+                    b.Navigation("Following");
                 });
 
             modelBuilder.Entity("DoAnCoSo2.Data.Blog", b =>
                 {
                     b.Navigation("Comments");
-                });
-
-            modelBuilder.Entity("DoAnCoSo2.Data.Comment", b =>
-                {
-                    b.Navigation("Replies");
                 });
 #pragma warning restore 612, 618
         }

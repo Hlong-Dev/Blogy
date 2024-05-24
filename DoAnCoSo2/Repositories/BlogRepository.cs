@@ -170,5 +170,30 @@ namespace DoAnCoSo2.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<IEnumerable<Blog>> GetPopularBlogsAsync(int count)
+        {
+            return await _context.Blogs
+                .OrderByDescending(b => b.ViewCount)
+                .Take(count)
+                .ToListAsync();
+        }
+        public async Task UpdateBlogAsync(Blog blog)
+        {
+            _context.Blogs.Update(blog);
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateViewCountAsync(int blogId)
+        {
+            var blog = await _context.Blogs.FirstOrDefaultAsync(b => b.BlogId == blogId);
+            if (blog != null)
+            {
+                blog.ViewCount++;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new Exception("Blog not found");
+            }
+        }
     }
 }

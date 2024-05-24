@@ -161,6 +161,75 @@ namespace DoAnCoSo2.Controllers
 
         //    return StatusCode(500, result.Errors);
         //}
+        [HttpPost("FollowUser")]
+        public async Task<IActionResult> FollowUser([FromBody] FollowUserModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.FollowerId) || string.IsNullOrEmpty(model.FolloweeId))
+            {
+                return BadRequest("Invalid follow request.");
+            }
+
+            var result = await accountRepo.FollowUserAsync(model.FollowerId, model.FolloweeId);
+            if (result)
+            {
+                return Ok("Follow successful.");
+            }
+
+            return StatusCode(500, "Failed to follow user.");
+        }
+        [HttpGet("Following/{userId}")]
+        public async Task<IActionResult> GetFollowing(string userId)
+        {
+            var following = await accountRepo.GetFollowingAsync(userId);
+            if (following == null || following.Count == 0)
+            {
+                return NotFound("User is not following anyone.");
+            }
+            return Ok(following);
+        }
+
+        [HttpGet("Followers/{userId}")]
+        public async Task<IActionResult> GetFollowers(string userId)
+        {
+            var followers = await accountRepo.GetFollowersAsync(userId);
+            if (followers == null || followers.Count == 0)
+            {
+                return NotFound("User has no followers.");
+            }
+            return Ok(followers);
+        }
+        [HttpGet("UserProfile/{userId}")]
+        public async Task<IActionResult> GetUserProfile(string userId)
+        {
+            var userProfile = await accountRepo.GetUserProfileAsync(userId);
+            if (userProfile == null)
+            {
+                return NotFound("User profile not found.");
+            }
+            return Ok(userProfile);
+        }
+        [HttpDelete("UnfollowUser")]
+        public async Task<IActionResult> UnfollowUser([FromBody] UnfollowUserModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.FollowerId) || string.IsNullOrEmpty(model.FolloweeId))
+            {
+                return BadRequest("Invalid unfollow request.");
+            }
+
+            var result = await accountRepo.UnfollowUserAsync(model.FollowerId, model.FolloweeId);
+            if (result)
+            {
+                return Ok("Unfollow successful.");
+            }
+
+            return StatusCode(500, "Failed to unfollow user.");
+        }
+        [HttpGet("IsFollowing/{followerId}/{followeeId}")]
+        public async Task<IActionResult> IsFollowing(string followerId, string followeeId)
+        {
+            var isFollowing = await accountRepo.IsFollowingAsync(followerId, followeeId);
+            return Ok(isFollowing);
+        }
 
     }
 }

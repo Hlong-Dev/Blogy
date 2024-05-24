@@ -15,6 +15,8 @@ namespace DoAnCoSo2.Data
         public DbSet<Category>? Categories { get; set; }
         public DbSet<UserSavedBlog> UserSavedBlogs { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<UserRelationship> UserRelationships { get; set; }
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,7 +31,20 @@ namespace DoAnCoSo2.Data
             modelBuilder.Entity<UserSavedBlog>()
                 .HasKey(us => us.Id);
 
-           
+            modelBuilder.Entity<UserRelationship>()
+             .HasKey(r => new { r.FollowerId, r.FolloweeId });
+
+            modelBuilder.Entity<UserRelationship>()
+                .HasOne<ApplicationUser>(r => r.Follower)
+                .WithMany(u => u.Following)
+                .HasForeignKey(r => r.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserRelationship>()
+                .HasOne<ApplicationUser>(r => r.Followee)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(r => r.FolloweeId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

@@ -16,13 +16,17 @@ namespace DoAnCoSo2.Repositories
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly IConfiguration configuration;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly BookStoreContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AccountRepository(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, RoleManager<IdentityRole> roleManager)
+        public AccountRepository(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, RoleManager<IdentityRole> roleManager, BookStoreContext context)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.configuration = configuration;
             this.roleManager = roleManager;
+            _context = context;
+            _userManager = userManager;
         }
 
         public async Task<string> SignInAsync(SignInModel model)
@@ -192,5 +196,88 @@ namespace DoAnCoSo2.Repositories
             var addRoleResult = await userManager.AddToRoleAsync(user, newRole);
             return addRoleResult;
         }
+        //public async Task<bool> IsFollowingAsync(string followerId, string followeeId)
+        //{
+        //    return await _context.UserRelationships
+        //        .AnyAsync(r => r.FollowerId == followerId && r.FolloweeId == followeeId);
+        //}
+
+        //public async Task<IdentityResult> FollowUserAsync(UserRelationship relationship)
+        //{
+        //    _context.UserRelationships.Add(relationship);
+        //    var result = await _context.SaveChangesAsync();
+        //    return result > 0 ? IdentityResult.Success : IdentityResult.Failed(new IdentityError { Description = "Failed to follow user" });
+        //}
+        public async Task<bool> FollowUserAsync(string followerId, string followeeId)
+        {
+            if (await _context.UserRelationships.AnyAsync(r => r.FollowerId == followerId && r.FolloweeId == followeeId))
+            {
+                return false; // Relationship already exists
+            }
+
+            var relationship = new UserRelationship
+            {
+                FollowerId = followerId,
+                FolloweeId = followeeId
+            };
+
+            _context.UserRelationships.Add(relationship);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+        public async Task<List<ApplicationUser>> GetFollowingAsync(string userId)
+        {
+            return await _context.UserRelationships
+                .Where(ur => ur.FollowerId == userId)
+                .Select(ur => ur.Followee)
+                .ToListAsync();
+        }
+
+        public async Task<List<ApplicationUser>> GetFollowersAsync(string userId)
+        {
+            return await _context.UserRelationships
+                .Where(ur => ur.FolloweeId == userId)
+                .Select(ur => ur.Follower)
+                .ToListAsync();
+        }
+        public async Task<bool> UnfollowUserAsync(string followerId, string followeeId)
+        {
+            var relationship = await _context.UserRelationships.FirstOrDefaultAsync(r => r.FollowerId == followerId && r.FolloweeId == followeeId);
+            if (relationship == null)
+            {
+                return false; // Relationship does not exist
+            }
+
+            _context.UserRelationships.Remove(relationship);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+
+        public async Task<UserProfileModel> GetUserProfileAsync(string userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return null;
+            }
+
+            var userProfile = new UserProfileModel
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                FullName = $"{user.FirstName} {user.LastName}", // Giả sử bạn có FirstName và LastName
+                Email = user.Email,
+                AvatarUrl = user.AvatarUrl
+                // Thêm các thông tin khác tại đây nếu cần
+            };
+
+            return userProfile;
+        }
+        public async Task<bool> IsFollowingAsync(string followerId, string followeeId)
+        {
+            return await _context.UserRelationships
+                .AnyAsync(r => r.FollowerId == followerId && r.FolloweeId == followeeId);
+        }
+
     }
 }
