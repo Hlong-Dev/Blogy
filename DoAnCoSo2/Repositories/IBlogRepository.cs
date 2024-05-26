@@ -23,6 +23,6 @@ namespace DoAnCoSo2.Repositories
         public Task DeleteCommentAsync(int commentId);
         Task<IEnumerable<Blog>> GetPopularBlogsAsync(int count);
         Task UpdateViewCountAsync(int blogId);
-
+        Task<List<Blog>> GetFollowedUsersBlogsAsync(string userId);
     }
 }

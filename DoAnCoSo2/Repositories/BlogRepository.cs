@@ -195,5 +195,31 @@ namespace DoAnCoSo2.Repositories
                 throw new Exception("Blog not found");
             }
         }
+        public async Task<List<Blog>> GetFollowedUsersBlogsAsync(string userId)
+        {
+            // Lấy danh sách các người dùng mà userId đang theo dõi
+            var followedUsers = await _context.UserRelationships
+                .Where(ur => ur.FollowerId == userId)
+                .Select(ur => ur.FolloweeId)
+                .ToListAsync();
+
+            // Khởi tạo danh sách để lưu trữ tất cả bài viết
+            var allBlogs = new List<Blog>();
+
+            // Duyệt qua từng người dùng mà userId đang theo dõi
+            foreach (var followeeId in followedUsers)
+            {
+                // Lấy tất cả bài viết của người dùng này từ cơ sở dữ liệu
+                var userBlogs = await _context.Blogs
+                    .Where(blog => blog.UserId == followeeId)
+                    .ToListAsync();
+
+                // Thêm tất cả bài viết của người dùng này vào danh sách chung
+                allBlogs.AddRange(userBlogs);
+            }
+
+            // Trả về danh sách tất cả bài viết của các người dùng mà userId đang theo dõi
+            return allBlogs;
+        }
     }
 }

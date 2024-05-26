@@ -290,5 +290,19 @@ namespace DoAnCoSo2.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet("followed/{userId}")]
+   
+        public async Task<IActionResult> GetFollowedUsersBlogs(string userId)
+        {
+            try
+            {
+                var blogs = await _blogRepo.GetFollowedUsersBlogsAsync(userId);
+                return Ok(blogs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
