@@ -24,5 +24,6 @@ namespace DoAnCoSo2.Repositories
         Task<IEnumerable<Blog>> GetPopularBlogsAsync(int count);
         Task UpdateViewCountAsync(int blogId);
         Task<List<Blog>> GetFollowedUsersBlogsAsync(string userId);
+        Task<IEnumerable<Blog>> SearchBlogsAsync(string keyword);
     }
 }

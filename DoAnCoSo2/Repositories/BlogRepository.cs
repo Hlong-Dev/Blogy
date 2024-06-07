@@ -221,5 +221,16 @@ namespace DoAnCoSo2.Repositories
             // Trả về danh sách tất cả bài viết của các người dùng mà userId đang theo dõi
             return allBlogs;
         }
+        public async Task<IEnumerable<Blog>> SearchBlogsAsync(string keyword)
+        {
+            if (string.IsNullOrEmpty(keyword))
+            {
+                return await _context.Blogs.ToListAsync();
+            }
+
+            return await _context.Blogs
+                .Where(b => b.Title.Contains(keyword) || b.Content.Contains(keyword) || b.Description.Contains(keyword))
+                .ToListAsync();
+        }
     }
 }

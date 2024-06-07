@@ -304,5 +304,18 @@ namespace DoAnCoSo2.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchBlogs([FromQuery] string keyword)
+        {
+            try
+            {
+                var blogs = await _blogRepo.SearchBlogsAsync(keyword);
+                return Ok(blogs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
