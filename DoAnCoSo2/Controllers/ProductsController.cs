@@ -73,6 +73,7 @@ namespace DoAnCoSo2.Controllers
         }
 
         [HttpPost]
+
         public async Task<IActionResult> AddNewBlog(BlogModel model)
         {
             try
@@ -128,6 +129,7 @@ namespace DoAnCoSo2.Controllers
 
 
         [HttpPost("upload")]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
             try
@@ -155,6 +157,7 @@ namespace DoAnCoSo2.Controllers
         }
 
         [HttpPut("{slug}")]
+      
         public async Task<IActionResult> UpdateBlog(string slug, [FromBody] BlogModel model)
         {
             if (slug != model.Slug)
@@ -166,7 +169,7 @@ namespace DoAnCoSo2.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize]
+      
         public async Task<IActionResult> DeleteBlog([FromRoute] int id)
         {
             await _blogRepo.DeleteBlogAsync(id);
