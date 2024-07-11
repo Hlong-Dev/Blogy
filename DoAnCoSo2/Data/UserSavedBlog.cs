@@ -12,8 +12,8 @@ namespace DoAnCoSo2.Data
         public string UserId { get; set; }
 
         [Required]
-        public int BlogId { get; set; }
-        [ForeignKey(nameof(BlogId))]
+        public string Slug { get; set; }
+        [ForeignKey(nameof(Slug))]
         public Blog Blog { get; set; }
     }
 }

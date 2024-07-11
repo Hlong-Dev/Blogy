@@ -2,11 +2,11 @@
 {
     public class CommentModel
     {
-        public string UserId { get; set; }
-        public string FirstName { get; set; }
-        public string AvatarUrl { get; set; }
         public string Content { get; set; }
- 
+        public DateTime CreatedAt { get; set; }
+        public string UserId { get; set; }
+        public string BlogSlug { get; set; }
     }
+
 
 }

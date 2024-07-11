@@ -7,6 +7,7 @@ using DoAnCoSo2.Repositories;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Localization;
+using Neo4jClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +65,15 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ImgurUploader>(); // Assuming ImageUploader is the correct class name
+var client = new BoltGraphClient(
+    new Uri(builder.Configuration["Neo4j:Uri"]),
+    builder.Configuration["Neo4j:Username"],
+    builder.Configuration["Neo4j:Password"]
+);
 
+client.ConnectAsync().Wait();
+
+builder.Services.AddSingleton<IGraphClient>(client);
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;

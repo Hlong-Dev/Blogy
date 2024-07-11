@@ -1,20 +1,22 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using DoAnCoSo2.Data;
 using DoAnCoSo2.Models;
-using DoAnCoSo2.Data;
+using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DoAnCoSo2.Repositories
 {
     public interface IAccountRepository
     {
-        public Task<IdentityResult> SignUpAsync(SignUpModel model);
-        public Task<string> SignInAsync(SignInModel model);
-        public Task<IdentityResult> UpdateUserRoleAsync(string userId, string newRole);
-        public Task<IEnumerable<ApplicationUser>> GetUsersAsync();
-        public Task<IdentityResult> UpdateUserAsync(string userId, ApplicationUser model);
-        public Task<IdentityResult> LockoutUserAsync(string userId);
-        public Task<IdentityResult> UnlockUserAsync(string userId);
-        public Task<IEnumerable<string>> GetRolesAsync();
-        public Task<IdentityResult> UpdateUserAndRoleAsync(string userId, ApplicationUser model, string newRole);
+        Task<IdentityResult> SignUpAsync(SignUpModel model);
+        Task<string> SignInAsync(SignInModel model);
+        Task<IdentityResult> UpdateUserRoleAsync(string userId, string newRole);
+        Task<IEnumerable<ApplicationUser>> GetUsersAsync();
+        Task<IdentityResult> UpdateUserAsync(string userId, ApplicationUser model);
+        Task<IdentityResult> LockoutUserAsync(string userId);
+        Task<IdentityResult> UnlockUserAsync(string userId);
+        Task<IEnumerable<string>> GetRolesAsync();
+        Task<IdentityResult> UpdateUserAndRoleAsync(string userId, ApplicationUser model, string newRole);
         Task<bool> FollowUserAsync(string followerId, string followeeId);
         Task<List<ApplicationUser>> GetFollowingAsync(string userId);
         Task<List<ApplicationUser>> GetFollowersAsync(string userId);
