@@ -215,6 +215,11 @@ namespace DoAnCoSo2.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet("noti/{userId}")]
+        public async Task<IEnumerable<Notification>> GetUserNotifications(string userId)
+        {
+            return await _blogRepo.GetNotificationsForUserAsync(userId);
+        }
         //[HttpPost("{slug}/comments")]
         //public async Task<IActionResult> AddComment(string slug, [FromBody] CommentModel model)
         //{
