@@ -4,7 +4,6 @@ namespace DoAnCoSo2.Models
 {
     public class BlogModel
     {
-        public int BlogId { get; set; }
         public string Slug { get; set; }
         [Required]
         public string Title { get; set; }
@@ -18,7 +17,7 @@ namespace DoAnCoSo2.Models
         public string Description { get; set; }
         public string? AvatarUrl { get; set; }
         public string? FirstName { get; set; }
-        public int CategoryId { get; set; }
+        public string CategorySlug { get; set; }
         public int ViewCount { get; set; }
     }
 }

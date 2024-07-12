@@ -58,7 +58,7 @@ namespace DoAnCoSo2.Repositories
             }
         }
 
-        public async Task<string> AddBlogAsync(Blog model, string userId)
+        public async Task<string> AddBlogAsync(Blog model, string userId, string categorySlug)
         {
             var newBlog = _mapper.Map<Blog>(model);
             newBlog.IsPublic = model.IsPublic;
@@ -70,8 +70,21 @@ namespace DoAnCoSo2.Repositories
 
             await AddUserPostedRelationship(userId, newBlog.Slug);
 
+            await AddCategoryBlogRelationship(categorySlug, newBlog.Slug);
+
             return newBlog.Slug;
         }
+
+        private async Task AddCategoryBlogRelationship(string categorySlug, string blogSlug)
+        {
+            await _client.Cypher
+                .Match("(category:Category)", "(blog:Blog)")
+                .Where((Category category) => category.Slug == categorySlug)
+                .AndWhere((Blog blog) => blog.Slug == blogSlug)
+                .Create("(blog)-[:BELONGS_TO]->(category)")
+                .ExecuteWithoutResultsAsync();
+        }
+
 
         public async Task<bool> IsSlugExists(string slug)
         {
@@ -84,44 +97,57 @@ namespace DoAnCoSo2.Repositories
             return result.Any();
         }
 
-        public async Task DeleteBlogAsync(int id)
-        {
-            await _client.Cypher
-                .Match("(blog:Blog)")
-                .Where((Blog blog) => blog.BlogId == id)
-                .Delete("blog")
-                .ExecuteWithoutResultsAsync();
-        }
-
-        public async Task<List<BlogModel>> GetAllBlogsAsync()
+        public async Task DeleteBlogAsync(string blogSlug)
         {
             try
             {
-                var blogs = await _client.Cypher
+                // Xóa tất cả các comment của bài viết
+                await _client.Cypher
+                    .Match("(blog:Blog { Slug: $blogSlug })<-[:HAS_COMMENT]-(comment:Comment)")
+                    .WithParam("blogSlug", blogSlug)
+                    .DetachDelete("comment")
+                    .ExecuteWithoutResultsAsync();
+
+                // Xóa tất cả các saved nodes của bài viết
+                await _client.Cypher
+                    .Match("(blog:Blog { Slug: $blogSlug })<-[:SAVED]-(saved:Saved)")
+                    .WithParam("blogSlug", blogSlug)
+                    .DetachDelete("saved")
+                    .ExecuteWithoutResultsAsync();
+
+                // Xóa tất cả các quan hệ liên kết khác của bài viết
+                await _client.Cypher
+                    .Match("(blog:Blog { Slug: $blogSlug })-[r]-()")
+                    .WithParam("blogSlug", blogSlug)
+                    .Delete("r")
+                    .ExecuteWithoutResultsAsync();
+
+                // Sau đó mới xóa bài viết chính thức
+                await _client.Cypher
                     .Match("(blog:Blog)")
-                    .Where((Blog blog) => blog.IsPublic)
-                    .Return(blog => blog.As<Blog>())
-                    .ResultsAsync;
-
-                if (blogs == null)
-                {
-                    Console.WriteLine("No blogs found.");
-                    return new List<BlogModel>();
-                }
-
-                Console.WriteLine($"Found {blogs.Count()} blogs.");
-
-                var blogModels = _mapper.Map<List<BlogModel>>(blogs);
-
-                return blogModels;
+                    .Where((Blog blog) => blog.Slug == blogSlug)
+                    .Delete("blog")
+                    .ExecuteWithoutResultsAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred in GetAllBlogsAsync: {ex.Message}");
+                Console.WriteLine($"Error deleting blog: {ex.Message}");
                 throw;
             }
         }
 
+
+
+        public async Task<IEnumerable<Blog>> GetAllBlogsAsync()
+        {
+            var blogs = await _client.Cypher
+                .Match("(blog:Blog)")
+                .Where("blog.IsPublic = true")
+                .Return(blog => blog.As<Blog>())
+                .ResultsAsync;
+
+            return blogs;
+        }
 
         public async Task<BlogModel> GetBlogAsync(string slug)
         {
@@ -189,22 +215,22 @@ namespace DoAnCoSo2.Repositories
             return _mapper.Map<List<BlogModel>>(blogs);
         }
 
-        public async Task SaveBlogAsync(string userId, int blogId)
+        public async Task SaveBlogAsync(string userId, string slug)
         {
             await _client.Cypher
                 .Match("(user:User)", "(blog:Blog)")
                 .Where((User user) => user.Id == userId)
-                .AndWhere((Blog blog) => blog.BlogId == blogId)
+                .AndWhere((Blog blog) => blog.Slug == slug)
                 .Create("(user)-[:SAVED]->(blog)")
                 .ExecuteWithoutResultsAsync();
         }
 
-        public async Task UnsaveBlogAsync(string userId, int blogId)
+        public async Task UnsaveBlogAsync(string userId, string slug)
         {
             await _client.Cypher
                 .Match("(user:User)-[r:SAVED]->(blog:Blog)")
                 .Where((User user) => user.Id == userId)
-                .AndWhere((Blog blog) => blog.BlogId == blogId)
+                .AndWhere((Blog blog) => blog.Slug == slug)
                 .Delete("r")
                 .ExecuteWithoutResultsAsync();
         }
@@ -220,30 +246,30 @@ namespace DoAnCoSo2.Repositories
             return _mapper.Map<List<BlogModel>>(blogs);
         }
 
-        public async Task<bool> IsBlogSavedAsync(string userId, int blogId)
+        public async Task<bool> IsBlogSavedAsync(string userId, string slug)
         {
             var result = await _client.Cypher
                 .Match("(user:User)-[:SAVED]->(blog:Blog)")
                 .Where((User user) => user.Id == userId)
-                .AndWhere((Blog blog) => blog.BlogId == blogId)
+                .AndWhere((Blog blog) => blog.Slug == slug)
                 .Return(blog => blog.As<Blog>())
                 .ResultsAsync;
 
             return result.Any();
         }
 
-        public async Task<IEnumerable<Comment>> GetCommentsForBlogAsync(int blogId)
+        public async Task<IEnumerable<Comment>> GetCommentsForBlogAsync(string slug)
         {
             var comments = await _client.Cypher
                 .Match("(comment:Comment)-[:ON]->(blog:Blog)")
-                .Where((Blog blog) => blog.BlogId == blogId)
+                .Where((Blog blog) => blog.Slug == slug)
                 .Return(comment => comment.As<Comment>())
                 .ResultsAsync;
 
             return comments;
         }
 
-        public async Task AddCommentToBlogAsync(string userId, int blogId, Comment comment)
+        public async Task AddCommentToBlogAsync(string userId, string slug, Comment comment)
         {
             try
             {
@@ -262,7 +288,7 @@ namespace DoAnCoSo2.Repositories
                 await _client.Cypher
                     .Match("(comment:Comment)", "(blog:Blog)")
                     .Where((Comment cmt) => cmt.Id == comment.Id)
-                    .AndWhere((Blog blog) => blog.BlogId == blogId)
+                    .AndWhere((Blog blog) => blog.Slug == slug)
                     .Create("(comment)-[:ON]->(blog)")
                     .ExecuteWithoutResultsAsync();
             }
@@ -294,11 +320,11 @@ namespace DoAnCoSo2.Repositories
             return blogs;
         }
 
-        public async Task UpdateViewCountAsync(int blogId)
+        public async Task UpdateViewCountAsync(string slug)
         {
             await _client.Cypher
                 .Match("(blog:Blog)")
-                .Where((Blog blog) => blog.BlogId == blogId)
+                .Where((Blog blog) => blog.Slug == slug)
                 .Set("blog.ViewCount = blog.ViewCount + 1")
                 .ExecuteWithoutResultsAsync();
         }
@@ -325,6 +351,7 @@ namespace DoAnCoSo2.Repositories
 
             return blogs;
         }
+
 
         public Task DeleteCommentAsync(int commentId)
         {

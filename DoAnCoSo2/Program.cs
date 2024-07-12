@@ -8,13 +8,18 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Localization;
 using Neo4jClient;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
 {
@@ -58,8 +63,6 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 builder.Services.AddAutoMapper(typeof(Program));
-
-// Life cycle DI: AddSingleton(), AddTransient(), AddScoped()
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
@@ -108,6 +111,44 @@ app.UseCors(builder => builder
 .AllowAnyMethod()
 .AllowAnyHeader());
 
+// Add WebSocket middleware
+app.UseWebSockets();
+
+// Handle WebSocket requests
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/ws")
+    {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            await HandleWebSocketAsync(webSocket);
+        }
+        else
+        {
+            context.Response.StatusCode = 400;
+        }
+    }
+    else
+    {
+        await next();
+    }
+});
+
 app.MapControllers();
 
 app.Run();
+
+static async Task HandleWebSocketAsync(WebSocket webSocket)
+{
+    var buffer = new byte[1024 * 4];
+    WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+    while (!result.CloseStatus.HasValue)
+    {
+        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+        var response = JsonSerializer.Serialize(new { message = "Received: " + message });
+        await webSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(response), 0, response.Length), result.MessageType, result.EndOfMessage, CancellationToken.None);
+        result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+    }
+    await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+}

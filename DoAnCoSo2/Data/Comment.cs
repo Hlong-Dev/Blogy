@@ -7,7 +7,7 @@ namespace DoAnCoSo2.Data
     public class Comment
     {
         [Key]
-        public string Id { get; set; } // Đặt kiểu dữ liệu cho Id phù hợp với cơ sở dữ liệu của bạn
+        public int Id { get; set; } // Đặt kiểu dữ liệu cho Id phù hợp với cơ sở dữ liệu của bạn
 
         public string BlogSlug { get; set; }
 
