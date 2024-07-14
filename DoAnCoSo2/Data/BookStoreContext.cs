@@ -21,7 +21,7 @@ namespace DoAnCoSo2.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
+            modelBuilder.Entity<Category>().HasNoKey();
             modelBuilder.Entity<UserSavedBlog>()
                 .HasKey(us => us.Id);
 

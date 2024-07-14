@@ -19,11 +19,11 @@ namespace DoAnCoSo2.Controllers
         private readonly BookStoreContext _context;
         public class SaveBlogRequest
         {
-            public int BlogId { get; set; }
+            public string Slug { get; set; }
         }
         public class UnsaveBlogRequest
         {
-            public int BlogId { get; set; }
+            public string Slug { get; set; }
         }
 
         public ProductsController(IBlogRepository repo, BookStoreContext context)
@@ -67,7 +67,7 @@ namespace DoAnCoSo2.Controllers
             }
 
             // Gọi phương thức từ repo để cập nhật số lượt xem của bài viết
-            await _blogRepo.UpdateViewCountAsync(blog.BlogId);
+            await _blogRepo.UpdateViewCountAsync(blog.Slug);
 
             return Ok(blog);
         }
@@ -93,6 +93,7 @@ namespace DoAnCoSo2.Controllers
                 {
                     Title = model.Title,
                     Content = model.Content,
+                    Id = model.Id,
                     UserName = model.UserName,
                     CreatedAt = currentDateTime,
                     ImageUrl = model.ImageUrl,
@@ -100,13 +101,13 @@ namespace DoAnCoSo2.Controllers
                     Description = model.Description,
                     AvatarUrl = model.AvatarUrl,
                     FirstName = model.FirstName,
-                    CategoryId = model.CategoryId,
-                    IsPublic = model.IsPublic,
-                    ViewCount = model.ViewCount
+                    CategorySlug = model.CategorySlug,
+                    IsPublic = model.IsPublic, // Đảm bảo giá trị `isPublic` được gán đúng
+                    ViewCount = model.ViewCount // Đảm bảo viewCount cũng được gán đúng
                 };
 
                 // Thêm blog mới vào cơ sở dữ liệu Neo4j và lấy về slug
-                var newSlug = await _blogRepo.AddBlogAsync(newBlog, model.Id);
+                var newSlug = await _blogRepo.AddBlogAsync(newBlog, model.Id, model.CategorySlug);
 
                 // Lấy blog mới đã được thêm vào từ cơ sở dữ liệu
                 var blog = await _blogRepo.GetBlogAsync(newSlug);
@@ -120,6 +121,7 @@ namespace DoAnCoSo2.Controllers
                 return BadRequest("Error adding new blog.");
             }
         }
+
         private string GenerateUniqueSlug(string slug)
         {
             // Tạo một slug mới không trùng lặp, ví dụ: thêm số vào cuối slug
@@ -169,29 +171,29 @@ namespace DoAnCoSo2.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{slug}")]
       
-        public async Task<IActionResult> DeleteBlog([FromRoute] int id)
+        public async Task<IActionResult> DeleteBlog([FromRoute] string slug)
         {
-            await _blogRepo.DeleteBlogAsync(id);
+            await _blogRepo.DeleteBlogAsync(slug);
             return Ok();
         }
         [HttpPost("saved")]
         public async Task<IActionResult> SaveOrUnsaveBlog([FromBody] SaveBlogRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var isBlogSaved = await _blogRepo.IsBlogSavedAsync(userId, request.BlogId);
+            var isBlogSaved = await _blogRepo.IsBlogSavedAsync(userId, request.Slug);
 
             if (isBlogSaved)
             {
                 // Nếu bài viết đã được lưu, thực hiện hành động bỏ lưu
-                await _blogRepo.UnsaveBlogAsync(userId, request.BlogId);
+                await _blogRepo.UnsaveBlogAsync(userId, request.Slug);
                 return Ok("Blog unsaved successfully!");
             }
             else
             {
                 // Nếu bài viết chưa được lưu, thực hiện hành động lưu
-                await _blogRepo.SaveBlogAsync(userId, request.BlogId);
+                await _blogRepo.SaveBlogAsync(userId, request.Slug);
                 return Ok("Blog saved successfully!");
             }
         }
@@ -244,12 +246,12 @@ namespace DoAnCoSo2.Controllers
         //    }
         //}
         [HttpGet("{blogId}/comments")]
-        public async Task<IActionResult> GetComments(int blogId)
+        public async Task<IActionResult> GetComments(string slug)
         {
             try
             {
                 // Retrieve all comments for the specified blog
-                var comments = await _blogRepo.GetCommentsForBlogAsync(blogId);
+                var comments = await _blogRepo.GetCommentsForBlogAsync(slug);
 
                 return Ok(comments);
             }
