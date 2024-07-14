@@ -73,7 +73,6 @@ namespace DoAnCoSo2.Controllers
         }
 
         [HttpPost]
-
         public async Task<IActionResult> AddNewBlog(BlogModel model)
         {
             try
@@ -94,31 +93,33 @@ namespace DoAnCoSo2.Controllers
                 {
                     Title = model.Title,
                     Content = model.Content,
-                    UserId = model.UserId,
                     UserName = model.UserName,
                     CreatedAt = currentDateTime,
                     ImageUrl = model.ImageUrl,
-                    Slug = model.Slug,// Lưu URL của ảnh vào blog
+                    Slug = model.Slug,
                     Description = model.Description,
                     AvatarUrl = model.AvatarUrl,
                     FirstName = model.FirstName,
-                    CategoryId = model.CategoryId
+                    CategoryId = model.CategoryId,
+                    IsPublic = model.IsPublic,
+                    ViewCount = model.ViewCount
                 };
 
-                // Thêm blog mới vào cơ sở dữ liệu
-                var newSlug = await _blogRepo.AddBlogAsync(model);
+                // Thêm blog mới vào cơ sở dữ liệu Neo4j và lấy về slug
+                var newSlug = await _blogRepo.AddBlogAsync(newBlog, model.Id);
 
-                // Lấy blog mới đã được thêm vào
+                // Lấy blog mới đã được thêm vào từ cơ sở dữ liệu
                 var blog = await _blogRepo.GetBlogAsync(newSlug);
 
                 return blog == null ? NotFound() : Ok(blog);
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
+                // Xử lý lỗi và ghi log
+                Console.WriteLine($"Error adding new blog: {ex.Message}");
+                return BadRequest("Error adding new blog.");
             }
         }
-
         private string GenerateUniqueSlug(string slug)
         {
             // Tạo một slug mới không trùng lặp, ví dụ: thêm số vào cuối slug
@@ -129,7 +130,7 @@ namespace DoAnCoSo2.Controllers
 
 
         [HttpPost("upload")]
-        [Authorize(Roles = "Customer")]
+        
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
             try
@@ -212,36 +213,36 @@ namespace DoAnCoSo2.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpPost("{slug}/comments")]
-        public async Task<IActionResult> AddComment(string slug, [FromBody] CommentModel model)
-        {
-            try
-            {
-                var blog = await _blogRepo.GetBlogAsync(slug);
-                if (blog == null)
-                {
-                    return NotFound("Blog not found");
-                }
+        //[HttpPost("{slug}/comments")]
+        //public async Task<IActionResult> AddComment(string slug, [FromBody] CommentModel model)
+        //{
+        //    try
+        //    {
+        //        var blog = await _blogRepo.GetBlogAsync(slug);
+        //        if (blog == null)
+        //        {
+        //            return NotFound("Blog not found");
+        //        }
 
-                var newComment = new Comment
-                {
-                    BlogId = blog.BlogId,
-                    UserId = model.UserId,
-                    FirstName = model.FirstName,
-                    AvatarUrl = model.AvatarUrl,
-                    Content = model.Content,
-                    CreatedAt = DateTime.UtcNow
-                };
+        //        var newComment = new Comment
+        //        {
+        //            BlogId = blog.BlogId,
+        //            UserId = model.UserId,
+        //            FirstName = model.FirstName,
+        //            AvatarUrl = model.AvatarUrl,
+        //            Content = model.Content,
+        //            CreatedAt = DateTime.UtcNow
+        //        };
 
-                await _blogRepo.AddCommentAsync(newComment);
+        //        await _blogRepo.AddCommentAsync(newComment);
 
-                return Ok("Comment added successfully!");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
+        //        return Ok("Comment added successfully!");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
+        //}
         [HttpGet("{blogId}/comments")]
         public async Task<IActionResult> GetComments(int blogId)
         {
