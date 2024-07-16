@@ -15,6 +15,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
+using DoAnCoSo2.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,7 +76,7 @@ var client = new BoltGraphClient(
 );
 
 client.ConnectAsync().Wait();
-
+builder.Services.AddSingleton<WebSocketConnectionManager>();
 builder.Services.AddSingleton<IGraphClient>(client);
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -121,8 +122,10 @@ app.Use(async (context, next) =>
     {
         if (context.WebSockets.IsWebSocketRequest)
         {
+            var userId = context.Request.Query["userId"].ToString();
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            await HandleWebSocketAsync(webSocket);
+            var webSocketManager = context.RequestServices.GetRequiredService<WebSocketConnectionManager>();
+            await webSocketManager.HandleWebSocketAsync(userId, webSocket);
         }
         else
         {

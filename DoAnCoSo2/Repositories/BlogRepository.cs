@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DoAnCoSo2.Services;
 
 namespace DoAnCoSo2.Repositories
 {
@@ -16,13 +17,15 @@ namespace DoAnCoSo2.Repositories
         private readonly IMapper _mapper;
         private readonly HttpClient _httpClient;
         private const string AccessToken = "ab361f7f8a35fe0a80e8000debbb2f19ef803d55";
+        private readonly WebSocketConnectionManager _webSocketConnectionManager;
 
-        public BlogRepository(IGraphClient client, IMapper mapper)
+        public BlogRepository(IGraphClient client, IMapper mapper, WebSocketConnectionManager webSocketConnectionManager)
         {
             _client = client;
             _mapper = mapper;
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
+            _webSocketConnectionManager = webSocketConnectionManager;
         }
 
         public async Task AddUserPostedRelationship(string userId, string blogSlug)
@@ -69,11 +72,67 @@ namespace DoAnCoSo2.Repositories
                 .ExecuteWithoutResultsAsync();
 
             await AddUserPostedRelationship(userId, newBlog.Slug);
-
             await AddCategoryBlogRelationship(categorySlug, newBlog.Slug);
+
+            // Send WebSocket message to followers
+            var followers = await _client.Cypher
+                .Match("(follower:User)-[:FOLLOWS]->(user:User {Id: $userId})")
+                .WithParam("userId", userId)
+                .Return(follower => follower.As<User>())
+                .ResultsAsync;
+
+            var message = $"User {userId} has posted a new blog: {newBlog.Title}";
+
+            foreach (var follower in followers)
+            {
+                await _webSocketConnectionManager.SendMessageAsync(follower.Id, message);
+                await AddNotificationAsync(follower.Id, message); // Add this line to create notifications
+            }
 
             return newBlog.Slug;
         }
+
+        public async Task AddNotificationAsync(string userId, string message)
+        {
+            var notification = new Notification
+            {
+                Id = Guid.NewGuid().ToString(),
+                Message = message,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _client.Cypher
+                .Create("(notification:Notification {Id: $id, Message: $message, CreatedAt: $createdAt})")
+                .WithParams(new
+                {
+                    id = notification.Id,
+                    message = notification.Message,
+                    createdAt = notification.CreatedAt
+                })
+                .ExecuteWithoutResultsAsync();
+
+            await _client.Cypher
+                .Match("(user:User)")
+                .Where((User user) => user.Id == userId)
+                .Match("(notification:Notification {Id: $id})")
+                .WithParam("id", notification.Id)
+                .Create("(user)-[:HAS_NOTIFICATION]->(notification)")
+                .ExecuteWithoutResultsAsync();
+        }
+
+        public async Task<IEnumerable<Notification>> GetNotificationsForUserAsync(string userId)
+        {
+            var notifications = await _client.Cypher
+                .Match("(user:User)-[:HAS_NOTIFICATION]->(notification:Notification)")
+                .Where((User user) => user.Id == userId)
+                .Return(notification => notification.As<Notification>())
+                .ResultsAsync;
+
+            return notifications;
+        }
+
+
+
 
         private async Task AddCategoryBlogRelationship(string categorySlug, string blogSlug)
         {
