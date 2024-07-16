@@ -74,40 +74,51 @@ namespace DoAnCoSo2.Repositories
             await AddUserPostedRelationship(userId, newBlog.Slug);
             await AddCategoryBlogRelationship(categorySlug, newBlog.Slug);
 
-            // Send WebSocket message to followers
+            // Gửi tin nhắn WebSocket đến những người theo dõi
             var followers = await _client.Cypher
                 .Match("(follower:User)-[:FOLLOWS]->(user:User {Id: $userId})")
                 .WithParam("userId", userId)
                 .Return(follower => follower.As<User>())
                 .ResultsAsync;
 
-            var message = $"User {userId} has posted a new blog: {newBlog.Title}";
+            var message = new
+            {
+                Text = $"User {userId} vừa đăng bài viết mới với tiêu đề: {newBlog.Title}",
+                Slug = newBlog.Slug,
+                AvatarUrl = newBlog.AvatarUrl // Include AvatarUrl in the message
+            };
+            var messageJson = JsonConvert.SerializeObject(message);
 
             foreach (var follower in followers)
             {
-                await _webSocketConnectionManager.SendMessageAsync(follower.Id, message);
-                await AddNotificationAsync(follower.Id, message); // Add this line to create notifications
+                await _webSocketConnectionManager.SendMessageAsync(follower.Id, messageJson);
+                await AddNotificationAsync(follower.Id, message.Text, newBlog.Slug, message.AvatarUrl);
             }
 
             return newBlog.Slug;
         }
 
-        public async Task AddNotificationAsync(string userId, string message)
+
+        public async Task AddNotificationAsync(string userId, string message, string slug, string avatarUrl)
         {
             var notification = new Notification
             {
                 Id = Guid.NewGuid().ToString(),
                 Message = message,
-                CreatedAt = DateTime.UtcNow
+                Slug = slug,
+                CreatedAt = DateTime.UtcNow,
+                AvatarUrl = avatarUrl // Set AvatarUrl
             };
 
             await _client.Cypher
-                .Create("(notification:Notification {Id: $id, Message: $message, CreatedAt: $createdAt})")
+                .Create("(notification:Notification {Id: $id, Message: $message, Slug: $slug, CreatedAt: $createdAt, AvatarUrl: $avatarUrl})")
                 .WithParams(new
                 {
                     id = notification.Id,
                     message = notification.Message,
-                    createdAt = notification.CreatedAt
+                    slug = notification.Slug,
+                    createdAt = notification.CreatedAt,
+                    avatarUrl = notification.AvatarUrl // Add AvatarUrl param
                 })
                 .ExecuteWithoutResultsAsync();
 
@@ -130,10 +141,6 @@ namespace DoAnCoSo2.Repositories
 
             return notifications;
         }
-
-
-
-
         private async Task AddCategoryBlogRelationship(string categorySlug, string blogSlug)
         {
             await _client.Cypher
@@ -267,7 +274,7 @@ namespace DoAnCoSo2.Repositories
         {
             var blogs = await _client.Cypher
                 .Match("(blog:Blog)")
-                .Where((Blog blog) => blog.Id == userId && blog.IsPublic == false)
+                .Where((Blog blog) => blog.Id == userId)
                 .Return(blog => blog.As<Blog>())
                 .ResultsAsync;
 
@@ -403,7 +410,7 @@ namespace DoAnCoSo2.Repositories
         {
             var blogs = await _client.Cypher
                 .Match("(blog:Blog)")
-                .Where("blog.Title CONTAINS $keyword OR blog.Content CONTAINS $keyword OR blog.Description CONTAINS $keyword")
+                .Where("blog.Title CONTAINS $keyword")
                 .WithParam("keyword", keyword)
                 .Return(blog => blog.As<Blog>())
                 .ResultsAsync;

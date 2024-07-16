@@ -29,7 +29,7 @@ namespace DoAnCoSo2.Repositories
         Task UpdateViewCountAsync(string slug);
         Task<List<Blog>> GetFollowedUsersBlogsAsync(string userId);
         Task<IEnumerable<Blog>> SearchBlogsAsync(string keyword);
-        Task AddNotificationAsync(string userId, string message);
+        Task AddNotificationAsync(string userId, string message, string slug, string avatarUrl);
         Task<IEnumerable<Notification>> GetNotificationsForUserAsync(string userId);
     }
 }
